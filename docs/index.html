@@ -1,0 +1,3525 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Transporte JBS</title>
+
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" >
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <link rel="stylesheet" href="style.css">
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+  <!-- =====================================================
+       CABEÇALHO
+  ====================================================== -->
+
+  <div class="card header">
+
+    <h1>
+      Transporte Colaboradores JBS
+    </h1>
+
+  </div>
+
+
+  <!-- =====================================================
+       TIPO DE TRANSPORTE
+  ====================================================== -->
+
+  <div class="switch-box">
+
+    <button
+      id="tab-inter"
+      class="btn-switch active"
+    >
+      🚌 Intermunicipal
+    </button>
+
+
+    <button
+      id="tab-muni"
+      class="btn-switch"
+    >
+      🏙️ Urbano Lins
+    </button>
+
+  </div>
+
+
+  <!-- =====================================================
+       SENTIDO
+  ====================================================== -->
+
+  <div
+    class="switch-box"
+    id="box-sentido"
+  >
+
+    <button
+      id="btn-ida"
+      class="btn-switch active"
+    >
+      🏠 ➔ 🏢 Indo p/ JBS
+    </button>
+
+
+    <button
+      id="btn-volta"
+      class="btn-switch"
+    >
+      🏢 ➔ 🏠 Voltando p/ CASA
+    </button>
+
+  </div>
+
+
+  <!-- =====================================================
+       DESTAQUE
+  ====================================================== -->
+
+  <div class="highlight">
+
+    <div
+      style="
+        font-size:0.75rem;
+        font-weight:bold;
+        text-transform:uppercase;
+      "
+      id="lbl-tipo"
+    >
+      PRÓXIMO EMBARQUE PARA A JBS
+    </div>
+
+
+    <div
+      class="time-large"
+      id="txt-horario"
+    >
+      --:--
+    </div>
+
+
+    <div
+      class="info-line"
+      id="txt-contador"
+    >
+      Aguardando seleção...
+    </div>
+
+
+    <hr
+      style="
+        margin:10px 0;
+        opacity:0.3;
+      "
+    >
+
+
+    <div
+      class="info-line"
+      id="txt-detalhes"
+    >
+      📍 Selecione sua cidade e consulte o ponto.
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       CONFIGURAÇÃO / GPS
+  ====================================================== -->
+
+  <div class="card">
+
+
+    <div id="group-cidade">
+
+      <label>
+        CIDADE:
+      </label>
+
+
+      <select id="sel-cidade">
+  <option value="Cafelândia" selected>Cafelândia</option>
+  <option value="Promissão">Promissão</option>
+  <option value="Sabino">Sabino</option>
+  <option value="Guaiçara">Guaiçara</option>
+  <option value="Getulina">Getulina</option>
+  <option value="Guaimbê">Guaimbê</option>
+  <option value="Pirajuí">Pirajuí</option>
+  <option value="Guarantã">Guarantã</option>
+      </select>
+
+
+    <!-- ENDEREÇO -->
+
+    <div
+      id="endereco-box"
+      style="
+        display:none;
+        margin-top:10px;
+      "
+    >
+
+      <label>
+        ENDEREÇO:
+      </label>
+
+
+      <input
+        type="text"
+        id="ipt-rua"
+        placeholder="Digite sua rua ou endereço"
+      >
+
+
+      <div class="btn-group">
+
+        <button
+          id="btn-search"
+          class="btn btn-search"
+        >
+          🔎 Buscar endereço
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- GPS -->
+
+    <div class="btn-group">
+
+      <button
+        id="btn-gps"
+        class="btn btn-gps"
+      >
+        📡 Usar GPS do Celular
+      </button>
+
+    </div>
+
+
+    <!-- MAPA -->
+
+    <div id="map"></div>
+
+  </div>
+
+
+  <!-- =====================================================
+       PONTOS
+  ====================================================== -->
+
+  <div class="card">
+
+    <h3
+      style="
+        font-size:0.9rem;
+        margin-bottom:8px;
+      "
+      id="lbl-titulo-pontos"
+    >
+      📍 Pontos Cadastrados
+    </h3>
+
+
+    <div
+      id="lista-pontos"
+      style="
+        max-height:220px;
+        overflow-y:auto;
+      "
+    ></div>
+
+  </div>
+
+
+  <!-- =====================================================
+       HORÁRIOS
+  ====================================================== -->
+
+  <div class="card">
+
+    <h3
+      style="
+        font-size:0.9rem;
+        margin-bottom:8px;
+      "
+    >
+      ⏰ Horários da Linha
+    </h3>
+
+
+    <div
+      id="lista-horarios"
+      style="
+        max-height:250px;
+        overflow-y:auto;
+      "
+    ></div>
+
+  </div>
+
+
+  <!-- =====================================================
+       DÚVIDAS / RH
+  ====================================================== -->
+
+  <div class="card duvidas-box">
+
+    <h3>
+      ❓ Dúvidas
+    </h3>
+
+    <div class="duvidas-texto">
+
+      <strong>Procurar RH:</strong><br>
+
+      📞 3511-4782<br>
+
+      ✉️ rotinas.lins@friboi.com.br
+
+    </div>
+
+  </div>
+
+
+</div>
+
+
+<script>
+
+
+/* =========================================================
+   CONFIGURAÇÃO GERAL
+========================================================= */
+
+var modoAtual = 'INTERMUNICIPAL';
+
+var sentidoAtual = 'IDA';
+
+var userPos = null;
+
+var leafletMap = null;
+
+var userMarker = null;
+
+var selectedMarker = null;
+
+var allPointsLayer = null;
+
+var routeLine = null;
+
+var gpsWatchId = null;
+
+var lastRouteLat = null;
+
+var lastRouteLng = null;
+
+var selectedDestination = null;
+
+var routeBusy = false;
+
+var pontosCidadeAtual = null;
+var ultimoDestinoPonto = null;
+
+
+var MIN_ROUTE_UPDATE_METERS = 30;
+
+
+/* =========================================================
+   PONTOS INTERMUNICIPAIS
+========================================================= */
+
+var DATA_PONTOS = [
+
+  {
+    cidade:"Cafelândia",
+    ponto:"FRAJOLA",
+    loc:"Rua: A x Rua: João Rodrigues",
+    lat:-21.8021,
+    lng:-49.6101
+  },
+
+  {
+    cidade:"Cafelândia",
+    ponto:"BAIXADINHA",
+    loc:"Av: Da Saudade x Rua: Antonio T. Takeuchi",
+    lat:-21.8030,
+    lng:-49.6110
+  },
+
+  {
+    cidade:"Cafelândia",
+    ponto:"FUNERÁRIA",
+    loc:"Av: Da Saudade x Rua: Fujiwara Hisato",
+    lat:-21.8035,
+    lng:-49.6115
+  },
+
+  {
+    cidade:"Cafelândia",
+    ponto:"MADEREIRA",
+    loc:"Rua: Brasil x Via De acesso SP300",
+    lat:-21.8010,
+    lng:-49.6080
+  },
+
+  {
+    cidade:"Cafelândia",
+    ponto:"BIG MART",
+    loc:"Av: D. Pedro X Rua: Cel Armando Simões",
+    lat:-21.8040,
+    lng:-49.6120
+  },
+
+  {
+    cidade:"Cafelândia",
+    ponto:"POSTO LINO",
+    loc:"Av: Jacob Zucchi x Marginal",
+    lat:-21.8060,
+    lng:-49.6130
+  },
+
+  {
+    cidade:"Cafelândia",
+    ponto:"FORUM",
+    loc:"Av: Jacob Zucchi x Av : Dionisia Zucchi",
+    lat:-21.8050,
+    lng:-49.6110
+  },
+
+  {
+    cidade:"Cafelândia",
+    ponto:"IGREJA",
+    loc:"Av: Dionisia Zucchi x Rua: Nove de Julho",
+    lat:-21.8045,
+    lng:-49.6105
+  },
+
+  {
+    cidade:"Cafelândia",
+    ponto:"CORAÇÃO S. JESUS",
+    loc:"Rua: Coração do S. Jesus x Rua João Pazeto",
+    lat:-21.8070,
+    lng:-49.6140
+  },
+
+  {
+    cidade:"Cafelândia",
+    ponto:"CONTRERA",
+    loc:"Centro / Perímetro Urbano",
+    lat:-21.8055,
+    lng:-49.6125
+  },
+
+  {
+    cidade:"Cafelândia",
+    ponto:"TREVO RONDON",
+    loc:"Rodovia Marechal Rondon",
+    lat:-21.8080,
+    lng:-49.6150
+  },
+
+
+  /* PIRAJUÍ */
+
+  {
+    cidade:"Pirajuí",
+    ponto:"ENTRADA CEMITÉRIO",
+    loc:"Av. Principal do Cemitério",
+    lat:-21.9980,
+    lng:-49.4580
+  },
+
+  {
+    cidade:"Pirajuí",
+    ponto:"RODOVIÁRIA",
+    loc:"Terminal Rodoviário",
+    lat:-21.9990,
+    lng:-49.4590
+  },
+
+  {
+    cidade:"Pirajuí",
+    ponto:"CÂMARA MUNICIPAL",
+    loc:"Centro",
+    lat:-22.0000,
+    lng:-49.4600
+  },
+
+  {
+    cidade:"Pirajuí",
+    ponto:"2ª SAÍDA",
+    loc:"Saída para Rodovia",
+    lat:-22.0010,
+    lng:-49.4610
+  },
+
+
+  /* SABINO */
+
+  {
+    cidade:"Sabino",
+    ponto:"S.O.S",
+    loc:"Av. Mar Rondon x Rua. Aurora Arterozani",
+    lat:-21.4603,
+    lng:-49.5746
+  },
+
+  {
+    cidade:"Sabino",
+    ponto:"CABELEREIRO",
+    loc:"R. Aurora Arterozani x R. Maria de Carvalho",
+    lat:-21.4610,
+    lng:-49.5730
+  },
+
+  {
+    cidade:"Sabino",
+    ponto:"LOMBADA",
+    loc:"R. Aurora Arterozani x Rua Palmira Beloto",
+    lat:-21.4620,
+    lng:-49.5740
+  },
+
+  {
+    cidade:"Sabino",
+    ponto:"EXTRA",
+    loc:"R. Palmira Beloto x Rua: Marechal Deodoro",
+    lat:-21.4625,
+    lng:-49.5745
+  },
+
+  {
+    cidade:"Sabino",
+    ponto:"2º ESQUINA",
+    loc:"Rua: Cinco x Rua: Dezessete",
+    lat:-21.4630,
+    lng:-49.5750
+  },
+
+  {
+    cidade:"Sabino",
+    ponto:"RODOVIARIA",
+    loc:"Rua: Cinco x Rua: Um",
+    lat:-21.4632,
+    lng:-49.5751
+  },
+
+  {
+    cidade:"Sabino",
+    ponto:"DELEGACIA",
+    loc:"Rua: Vinte de Janeiro x Av: Padre Anchieta",
+    lat:-21.4640,
+    lng:-49.5720
+  },
+
+  {
+    cidade:"Sabino",
+    ponto:"2º ESQUINA (ANCHIETA)",
+    loc:"Av: Padre Anchieta x Rua: Rui Barbosa",
+    lat:-21.4645,
+    lng:-49.5715
+  },
+
+  {
+    cidade:"Sabino",
+    ponto:"POSTO DA SAÍDA",
+    loc:"Av: Padre Anchieta x Rua: Joaquim Nabuco",
+    lat:-21.4650,
+    lng:-49.5710
+  },
+
+  {
+    cidade:"Sabino",
+    ponto:"CONFINAMENTO",
+    loc:"David Eid 381",
+    lat:-21.4670,
+    lng:-49.5690
+  },
+
+  {
+    cidade:"Sabino",
+    ponto:"GUPIRANGA",
+    loc:"David Eid",
+    lat:-21.4680,
+    lng:-49.5680
+  },
+
+
+  /* PROMISSÃO */
+
+  {
+    cidade:"Promissão",
+    ponto:"NOSSO TETO",
+    loc:"Bairro Nosso Teto",
+    lat:-21.5350,
+    lng:-49.8550
+  },
+
+  {
+    cidade:"Promissão",
+    ponto:"ESTADIO",
+    loc:"Rua: Francisco Gimenes x Durval A Souza",
+    lat:-21.5361,
+    lng:-49.8542
+  },
+
+  {
+    cidade:"Promissão",
+    ponto:"SALÃO",
+    loc:"Rua: Francisco Gimenes x Durval A Souza",
+    lat:-21.5362,
+    lng:-49.8543
+  },
+
+  {
+    cidade:"Promissão",
+    ponto:"ANTIGO SAEE",
+    loc:"Rua: F. Gimenez x Rua: Josefina V. De Freitas",
+    lat:-21.5370,
+    lng:-49.8530
+  },
+
+  {
+    cidade:"Promissão",
+    ponto:"RODOVIÁRIA I",
+    loc:"Rua: Francisco Gimenes x Ceará",
+    lat:-21.5380,
+    lng:-49.8510
+  },
+
+  {
+    cidade:"Promissão",
+    ponto:"RODOVIÁRIA II",
+    loc:"Rua: Hector Legru x Av: Acre",
+    lat:-21.5385,
+    lng:-49.8505
+  },
+
+  {
+    cidade:"Promissão",
+    ponto:"LINHA TREM",
+    loc:"Vicinal",
+    lat:-21.5390,
+    lng:-49.8490
+  },
+
+  {
+    cidade:"Promissão",
+    ponto:"VICINAL",
+    loc:"Via de Acesso Maj Antonio Dinalli",
+    lat:-21.5400,
+    lng:-49.8470
+  },
+
+  {
+    cidade:"Promissão",
+    ponto:"ESCOLINHA YPE",
+    loc:"Rua: Lydio R. Portela x Rua: Manoel Amorim",
+    lat:-21.5420,
+    lng:-49.8430
+  },
+
+  {
+    cidade:"Promissão",
+    ponto:"PORTELA",
+    loc:"Rua: Orlando Portela x Av: Madre Paulina",
+    lat:-21.5410,
+    lng:-49.8440
+  },
+
+  {
+    cidade:"Promissão",
+    ponto:"PONTILHÃO",
+    loc:"Av: Zamenhof x Rua: Quatro",
+    lat:-21.5355,
+    lng:-49.8520
+  },
+
+  {
+    cidade:"Promissão",
+    ponto:"ESCOLINHA",
+    loc:"Rua: Jandaia x Rua: Francisco Gimenes",
+    lat:-21.5365,
+    lng:-49.8535
+  },
+
+  {
+    cidade:"Promissão",
+    ponto:"BARROKAS",
+    loc:"Rua: F. Gimenes x Rua Pdr José de Anchieta",
+    lat:-21.5375,
+    lng:-49.8525
+  },
+
+  {
+    cidade:"Promissão",
+    ponto:"VELORIO",
+    loc:"Av: Saudade x Av: Noroeste",
+    lat:-21.5340,
+    lng:-49.8580
+  },
+
+  {
+    cidade:"Promissão",
+    ponto:"MACAPI",
+    loc:"Av: Saudade x Av: Eurico Gaspar Dutra",
+    lat:-21.5330,
+    lng:-49.8590
+  },
+
+  {
+    cidade:"Promissão",
+    ponto:"LAVADOR",
+    loc:"Shuei Uetsuka x Rua: Baltazar Rodrigues",
+    lat:-21.5320,
+    lng:-49.8600
+  },
+
+  {
+    cidade:"Promissão",
+    ponto:"PRAÇA",
+    loc:"Rua: Gentil Moreira x Rua: José F. Ludovico",
+    lat:-21.5350,
+    lng:-49.8560
+  },
+
+  {
+    cidade:"Promissão",
+    ponto:"PROMITINTAS",
+    loc:"Av: Eurico G. Dutra x Rua: Gentil Moreira",
+    lat:-21.5345,
+    lng:-49.8570
+  },
+
+  {
+    cidade:"Promissão",
+    ponto:"DEPOSITO BRASIL",
+    loc:"Av: Eurico G. Dutra x Rua: Lucio Prado",
+    lat:-21.5335,
+    lng:-49.8575
+  },
+
+  {
+    cidade:"Promissão",
+    ponto:"PADARIA",
+    loc:"Av: Eurico G. Dutra x Rua: Bento Da Cruz",
+    lat:-21.5325,
+    lng:-49.8580
+  },
+
+  {
+    cidade:"Promissão",
+    ponto:"ADC",
+    loc:"Av: Eurico G. Dutra x Rua: Alberto Guerra",
+    lat:-21.5315,
+    lng:-49.8585
+  },
+
+  {
+    cidade:"Promissão",
+    ponto:"BOM VIVER",
+    loc:"Av: Dos Ypês x Av: Augusto Vieira",
+    lat:-21.5430,
+    lng:-49.8420
+  },
+
+
+  /* GUAIMBÊ */
+
+  {
+    cidade:"Guaimbê",
+    ponto:"VILA NOVA",
+    loc:"Bairro Vila Nova",
+    lat:-21.9080,
+    lng:-49.8900
+  },
+
+  {
+    cidade:"Guaimbê",
+    ponto:"BALNEÁRIO",
+    loc:"Área de Lazer",
+    lat:-21.9090,
+    lng:-49.8910
+  },
+
+  {
+    cidade:"Guaimbê",
+    ponto:"PRAÇA",
+    loc:"Praça Central",
+    lat:-21.9100,
+    lng:-49.8920
+  },
+
+  {
+    cidade:"Guaimbê",
+    ponto:"RODOVIARIA",
+    loc:"Terminal Rodoviário",
+    lat:-21.9110,
+    lng:-49.8930
+  },
+
+  {
+    cidade:"Guaimbê",
+    ponto:"PADARIA",
+    loc:"Centro",
+    lat:-21.9120,
+    lng:-49.8940
+  },
+
+  {
+    cidade:"Guaimbê",
+    ponto:"PONTO ONIBUS",
+    loc:"Rua: Iwai Shingo saída x Estrada Municipal",
+    lat:-21.9130,
+    lng:-49.8950
+  },
+
+
+  /* GETULINA */
+
+  {
+    cidade:"Getulina",
+    ponto:"CAMPÃO",
+    loc:"Rua: Whashington Luis x Barão do Rio Branco",
+    lat:-21.7980,
+    lng:-49.9320
+  },
+
+  {
+    cidade:"Getulina",
+    ponto:"POSTÃO",
+    loc:"Rua: Dino Bueno x Av: Da Saudade",
+    lat:-21.7990,
+    lng:-49.9310
+  },
+
+  {
+    cidade:"Getulina",
+    ponto:"MERCADO",
+    loc:"Av: Da Saudade x Rua: Afonso Pena",
+    lat:-21.7995,
+    lng:-49.9305
+  },
+
+  {
+    cidade:"Getulina",
+    ponto:"BICO E BETO",
+    loc:"Av: Lucinda Martins x Rua: Afonso Pena",
+    lat:-21.7985,
+    lng:-49.9295
+  },
+
+  {
+    cidade:"Getulina",
+    ponto:"POSTO SANDES",
+    loc:"Av: Lucinda Martins x Rua: Fernando Costa",
+    lat:-21.7975,
+    lng:-49.9285
+  },
+
+  {
+    cidade:"Getulina",
+    ponto:"RODOVIÁRIA",
+    loc:"Rua: Dom Pedro x Rua: Lacerda Franco",
+    lat:-21.8000,
+    lng:-49.9300
+  },
+
+  {
+    cidade:"Getulina",
+    ponto:"DEPOSITO BEBIDAS",
+    loc:"Rua: Lacerda Franco",
+    lat:-21.8010,
+    lng:-49.9310
+  },
+
+  {
+    cidade:"Getulina",
+    ponto:"TREVO GETULINA",
+    loc:"Entrada da Cidade",
+    lat:-21.8020,
+    lng:-49.9320
+  },
+
+
+  /* GUARANTÃ */
+
+  {
+    cidade:"Guarantã",
+    ponto:"PREFEITURA",
+    loc:"Centro",
+    lat:-21.8800,
+    lng:-49.5800
+  },
+
+  {
+    cidade:"Guarantã",
+    ponto:"GINÁSIO",
+    loc:"Ginásio de Esportes",
+    lat:-21.8810,
+    lng:-49.5810
+  },
+
+  {
+    cidade:"Guarantã",
+    ponto:"PRACINHA NITI",
+    loc:"Bairro Niti",
+    lat:-21.8820,
+    lng:-49.5820
+  },
+
+  {
+    cidade:"Guarantã",
+    ponto:"ESCRITÓRIO ADVOCACIA",
+    loc:"Rua Principal",
+    lat:-21.8830,
+    lng:-49.5830
+  },
+
+  {
+    cidade:"Guarantã",
+    ponto:"ESQUINA MERCADO",
+    loc:"Saída de Guarantã",
+    lat:-21.8840,
+    lng:-49.5840
+  }
+
+];
+
+
+/* =========================================================
+   HORÁRIOS INTERMUNICIPAIS ATUALIZADOS
+========================================================= */
+var DATA_HORARIOS = [
+
+  /* CAFELÂNDIA - Plataforma 8 */
+  { cidade:"Cafelândia", sentido:"IDA", hora:"04:50", plat:"8", veiculo:"GOLD Ônibus" },
+  { cidade:"Cafelândia", sentido:"IDA", hora:"05:20", plat:"8", veiculo:"Plena Van" },
+  { cidade:"Cafelândia", sentido:"IDA", hora:"05:50", plat:"8", veiculo:"GOLD Ônibus" },
+  { cidade:"Cafelândia", sentido:"IDA", hora:"06:50", plat:"8", veiculo:"GOLD Ônibus" },
+  { cidade:"Cafelândia", sentido:"IDA", hora:"13:00", plat:"8", veiculo:"GOLD Ônibus" },
+  { cidade:"Cafelândia", sentido:"IDA", hora:"14:50", plat:"8", veiculo:"GOLD Ônibus" },
+  { cidade:"Cafelândia", sentido:"IDA", hora:"16:00", plat:"8", veiculo:"GOLD Ônibus" },
+  { cidade:"Cafelândia", sentido:"IDA", hora:"17:00", plat:"8", veiculo:"GOLD Ônibus" },
+  { cidade:"Cafelândia", sentido:"IDA", hora:"21:00", plat:"8", veiculo:"GOLD Ônibus" },
+
+  { cidade:"Cafelândia", sentido:"VOLTA", hora:"01:45", plat:"8", veiculo:"GOLD Ônibus" },
+  { cidade:"Cafelândia", sentido:"VOLTA", hora:"02:30", plat:"8", veiculo:"Plena Van" },
+  { cidade:"Cafelândia", sentido:"VOLTA", hora:"04:55", plat:"8", veiculo:"Plena Van" },
+  { cidade:"Cafelândia", sentido:"VOLTA", hora:"05:35", plat:"8", veiculo:"GOLD Ônibus" },
+  { cidade:"Cafelândia", sentido:"VOLTA", hora:"06:10", plat:"8", veiculo:"GOLD Ônibus" },
+  { cidade:"Cafelândia", sentido:"VOLTA", hora:"14:40", plat:"8", veiculo:"GOLD Ônibus" },
+  { cidade:"Cafelândia", sentido:"VOLTA", hora:"16:15", plat:"8", veiculo:"GOLD Ônibus" },
+  { cidade:"Cafelândia", sentido:"VOLTA", hora:"17:20", plat:"8", veiculo:"GOLD Ônibus" },
+  { cidade:"Cafelândia", sentido:"VOLTA", hora:"17:50", plat:"8", veiculo:"Plena Van" },
+  { cidade:"Cafelândia", sentido:"VOLTA", hora:"18:20", plat:"8", veiculo:"GOLD Ônibus" },
+  { cidade:"Cafelândia", sentido:"VOLTA", hora:"22:50", plat:"8", veiculo:"GOLD Ônibus" },
+
+  /* SABINO - Plataforma 7 */
+  { cidade:"Sabino", sentido:"IDA", hora:"04:35", plat:"7", veiculo:"GOLD Ônibus" },
+  { cidade:"Sabino", sentido:"IDA", hora:"05:10", plat:"7", veiculo:"Plena Van" },
+  { cidade:"Sabino", sentido:"IDA", hora:"05:20", plat:"7", veiculo:"GOLD Ônibus" },
+  { cidade:"Sabino", sentido:"IDA", hora:"12:50", plat:"7", veiculo:"GOLD Ônibus" },
+  { cidade:"Sabino", sentido:"IDA", hora:"15:50", plat:"7", veiculo:"GOLD Ônibus" },
+  { cidade:"Sabino", sentido:"IDA", hora:"16:40", plat:"7", veiculo:"GOLD Ônibus" },
+  { cidade:"Sabino", sentido:"IDA", hora:"20:45", plat:"7", veiculo:"GOLD Ônibus" },
+
+  { cidade:"Sabino", sentido:"VOLTA", hora:"06:40", plat:"7", veiculo:"GOLD Ônibus" },
+  { cidade:"Sabino", sentido:"VOLTA", hora:"14:40", plat:"7", veiculo:"GOLD Ônibus" },
+  { cidade:"Sabino", sentido:"VOLTA", hora:"15:30", plat:"7", veiculo:"Plena Van" },
+  { cidade:"Sabino", sentido:"VOLTA", hora:"16:40", plat:"7", veiculo:"GOLD Ônibus" },
+  { cidade:"Sabino", sentido:"VOLTA", hora:"17:20", plat:"7", veiculo:"GOLD Ônibus" },
+  { cidade:"Sabino", sentido:"VOLTA", hora:"17:50", plat:"7", veiculo:"Plena Van" },
+  { cidade:"Sabino", sentido:"VOLTA", hora:"18:20", plat:"7", veiculo:"Plena Van" },
+  { cidade:"Sabino", sentido:"VOLTA", hora:"22:50", plat:"7", veiculo:"GOLD Ônibus" },
+
+  /* PROMISSÃO - Plataforma 1 */
+  { cidade:"Promissão", sentido:"IDA", hora:"01:00", plat:"1", veiculo:"GOLD Ônibus" },
+  { cidade:"Promissão", sentido:"IDA", hora:"04:20", plat:"1", veiculo:"GOLD Ônibus" },
+  { cidade:"Promissão", sentido:"IDA", hora:"04:30", plat:"1", veiculo:"GOLD Ônibus" },
+  { cidade:"Promissão", sentido:"IDA", hora:"04:40", plat:"1", veiculo:"GOLD Ônibus" },
+  { cidade:"Promissão", sentido:"IDA", hora:"05:20", plat:"1", veiculo:"GOLD Ônibus" },
+  { cidade:"Promissão", sentido:"IDA", hora:"05:45", plat:"1", veiculo:"GOLD Ônibus" },
+  { cidade:"Promissão", sentido:"IDA", hora:"05:50", plat:"1", veiculo:"GOLD Ônibus" },
+  { cidade:"Promissão", sentido:"IDA", hora:"06:50", plat:"1", veiculo:"GOLD Ônibus" },
+  { cidade:"Promissão", sentido:"IDA", hora:"13:05", plat:"1", veiculo:"GOLD Ônibus" },
+  { cidade:"Promissão", sentido:"IDA", hora:"14:40", plat:"1", veiculo:"GOLD Ônibus" },
+  { cidade:"Promissão", sentido:"IDA", hora:"15:50", plat:"1", veiculo:"GOLD Ônibus" },
+  { cidade:"Promissão", sentido:"IDA", hora:"16:00", plat:"1", veiculo:"GOLD Ônibus" },
+  { cidade:"Promissão", sentido:"IDA", hora:"16:40", plat:"1", veiculo:"GOLD Ônibus" },
+  { cidade:"Promissão", sentido:"IDA", hora:"17:20", plat:"1", veiculo:"GOLD Ônibus" },
+  { cidade:"Promissão", sentido:"IDA", hora:"21:00", plat:"1", veiculo:"GOLD Ônibus" },
+
+  { cidade:"Promissão", sentido:"VOLTA", hora:"01:45", plat:"1", veiculo:"GOLD Ônibus" },
+  { cidade:"Promissão", sentido:"VOLTA", hora:"02:35", plat:"1", veiculo:"GOLD Ônibus" },
+  { cidade:"Promissão", sentido:"VOLTA", hora:"05:05", plat:"1", veiculo:"GOLD Ônibus" },
+  { cidade:"Promissão", sentido:"VOLTA", hora:"06:10", plat:"1", veiculo:"GOLD Ônibus" },
+  { cidade:"Promissão", sentido:"VOLTA", hora:"06:40", plat:"1", veiculo:"GOLD Ônibus" },
+  { cidade:"Promissão", sentido:"VOLTA", hora:"07:40", plat:"1", veiculo:"GOLD Ônibus" },
+  { cidade:"Promissão", sentido:"VOLTA", hora:"14:40", plat:"1", veiculo:"GOLD Ônibus" },
+  { cidade:"Promissão", sentido:"VOLTA", hora:"15:30", plat:"1", veiculo:"Plena Van" },
+  { cidade:"Promissão", sentido:"VOLTA", hora:"16:00", plat:"1", veiculo:"GOLD Ônibus" },
+  { cidade:"Promissão", sentido:"VOLTA", hora:"16:40", plat:"1", veiculo:"GOLD Ônibus" },
+  { cidade:"Promissão", sentido:"VOLTA", hora:"17:20", plat:"1", veiculo:"GOLD Ônibus" },
+  { cidade:"Promissão", sentido:"VOLTA", hora:"17:30", plat:"1", veiculo:"GOLD Ônibus" },
+  { cidade:"Promissão", sentido:"VOLTA", hora:"17:50", plat:"1", veiculo:"GOLD Ônibus" },
+  { cidade:"Promissão", sentido:"VOLTA", hora:"18:20", plat:"1", veiculo:"GOLD Ônibus" },
+  { cidade:"Promissão", sentido:"VOLTA", hora:"22:50", plat:"1", veiculo:"GOLD Ônibus" },
+
+  /* AGROVILA CENTRAL - Plataforma 1 */
+  { cidade:"Agrovila Central", sentido:"IDA", hora:"05:50", plat:"1", veiculo:"Plena Van" },
+  { cidade:"Agrovila Central", sentido:"IDA", hora:"12:50", plat:"1", veiculo:"Plena Van" },
+  { cidade:"Agrovila Central", sentido:"VOLTA", hora:"01:10", plat:"1", veiculo:"Plena Van" },
+  { cidade:"Agrovila Central", sentido:"VOLTA", hora:"17:40", plat:"1", veiculo:"Plena Van" },
+
+  /* GUAIMBÊ - Plataforma 4 */
+  { cidade:"Guaimbê", sentido:"IDA", hora:"00:10", plat:"4", veiculo:"GOLD Ônibus" },
+  { cidade:"Guaimbê", sentido:"IDA", hora:"04:35", plat:"4", veiculo:"GOLD Ônibus" },
+  { cidade:"Guaimbê", sentido:"IDA", hora:"04:45", plat:"4", veiculo:"GOLD Ônibus" },
+  { cidade:"Guaimbê", sentido:"IDA", hora:"05:30", plat:"4", veiculo:"GOLD Ônibus" },
+  { cidade:"Guaimbê", sentido:"IDA", hora:"05:50", plat:"4", veiculo:"GOLD Ônibus" },
+  { cidade:"Guaimbê", sentido:"IDA", hora:"13:00", plat:"4", veiculo:"GOLD Ônibus" },
+  { cidade:"Guaimbê", sentido:"IDA", hora:"14:30", plat:"4", veiculo:"GOLD Ônibus" },
+  { cidade:"Guaimbê", sentido:"IDA", hora:"15:45", plat:"4", veiculo:"GOLD Ônibus" },
+  { cidade:"Guaimbê", sentido:"IDA", hora:"16:10", plat:"4", veiculo:"GOLD Ônibus" },
+  { cidade:"Guaimbê", sentido:"IDA", hora:"16:15", plat:"4", veiculo:"GOLD Ônibus" },
+  { cidade:"Guaimbê", sentido:"IDA", hora:"16:45", plat:"4", veiculo:"GOLD Ônibus" },
+  { cidade:"Guaimbê", sentido:"IDA", hora:"21:00", plat:"4", veiculo:"GOLD Ônibus" },
+
+  { cidade:"Guaimbê", sentido:"VOLTA", hora:"01:45", plat:"4", veiculo:"GOLD Ônibus" },
+  { cidade:"Guaimbê", sentido:"VOLTA", hora:"02:30", plat:"4", veiculo:"Plena Van" },
+  { cidade:"Guaimbê", sentido:"VOLTA", hora:"05:10", plat:"4", veiculo:"GOLD Ônibus" },
+  { cidade:"Guaimbê", sentido:"VOLTA", hora:"05:25", plat:"4", veiculo:"GOLD Ônibus" },
+  { cidade:"Guaimbê", sentido:"VOLTA", hora:"06:30", plat:"4", veiculo:"GOLD Ônibus" },
+  { cidade:"Guaimbê", sentido:"VOLTA", hora:"14:40", plat:"4", veiculo:"GOLD Ônibus" },
+  { cidade:"Guaimbê", sentido:"VOLTA", hora:"15:40", plat:"4", veiculo:"GOLD Ônibus" },
+  { cidade:"Guaimbê", sentido:"VOLTA", hora:"16:20", plat:"4", veiculo:"GOLD Ônibus" },
+  { cidade:"Guaimbê", sentido:"VOLTA", hora:"16:40", plat:"4", veiculo:"GOLD Ônibus" },
+  { cidade:"Guaimbê", sentido:"VOLTA", hora:"17:10", plat:"4", veiculo:"GOLD Ônibus" },
+  { cidade:"Guaimbê", sentido:"VOLTA", hora:"17:20", plat:"4", veiculo:"GOLD Ônibus" },
+  { cidade:"Guaimbê", sentido:"VOLTA", hora:"17:50", plat:"4", veiculo:"GOLD Ônibus" },
+  { cidade:"Guaimbê", sentido:"VOLTA", hora:"18:20", plat:"4", veiculo:"GOLD Ônibus" },
+  { cidade:"Guaimbê", sentido:"VOLTA", hora:"22:50", plat:"4", veiculo:"GOLD Ônibus" },
+
+  /* GETULINA - Plataforma 3 */
+  { cidade:"Getulina", sentido:"IDA", hora:"01:00", plat:"3", veiculo:"GOLD Ônibus" },
+  { cidade:"Getulina", sentido:"IDA", hora:"04:30", plat:"3", veiculo:"GOLD Ônibus" },
+  { cidade:"Getulina", sentido:"IDA", hora:"04:50", plat:"3", veiculo:"GOLD Ônibus" },
+  { cidade:"Getulina", sentido:"IDA", hora:"05:30", plat:"3", veiculo:"GOLD / Plena Van" },
+  { cidade:"Getulina", sentido:"IDA", hora:"05:50", plat:"3", veiculo:"GOLD Ônibus" },
+  { cidade:"Getulina", sentido:"IDA", hora:"06:00", plat:"3", veiculo:"GOLD Ônibus" },
+  { cidade:"Getulina", sentido:"IDA", hora:"13:00", plat:"3", veiculo:"GOLD Ônibus" },
+  { cidade:"Getulina", sentido:"IDA", hora:"14:50", plat:"3", veiculo:"GOLD Ônibus" },
+  { cidade:"Getulina", sentido:"IDA", hora:"15:30", plat:"3", veiculo:"GOLD Ônibus" },
+  { cidade:"Getulina", sentido:"IDA", hora:"16:15", plat:"3", veiculo:"GOLD Ônibus" },
+  { cidade:"Getulina", sentido:"IDA", hora:"17:05", plat:"3", veiculo:"GOLD Ônibus" },
+  { cidade:"Getulina", sentido:"IDA", hora:"17:50", plat:"3", veiculo:"GOLD Ônibus" },
+  { cidade:"Getulina", sentido:"IDA", hora:"21:15", plat:"3", veiculo:"GOLD Ônibus" },
+
+  { cidade:"Getulina", sentido:"VOLTA", hora:"01:45", plat:"3", veiculo:"GOLD Ônibus" },
+  { cidade:"Getulina", sentido:"VOLTA", hora:"02:30", plat:"3", veiculo:"Plena Van" },
+  { cidade:"Getulina", sentido:"VOLTA", hora:"05:00", plat:"3", veiculo:"GOLD Ônibus" },
+  { cidade:"Getulina", sentido:"VOLTA", hora:"05:30", plat:"3", veiculo:"GOLD Ônibus" },
+  { cidade:"Getulina", sentido:"VOLTA", hora:"06:15", plat:"3", veiculo:"GOLD Ônibus" },
+  { cidade:"Getulina", sentido:"VOLTA", hora:"14:40", plat:"3", veiculo:"GOLD / Plena Van" },
+  { cidade:"Getulina", sentido:"VOLTA", hora:"15:45", plat:"3", veiculo:"GOLD Ônibus" },
+  { cidade:"Getulina", sentido:"VOLTA", hora:"16:15", plat:"3", veiculo:"GOLD Ônibus" },
+  { cidade:"Getulina", sentido:"VOLTA", hora:"16:40", plat:"3", veiculo:"GOLD Ônibus" },
+  { cidade:"Getulina", sentido:"VOLTA", hora:"17:20", plat:"3", veiculo:"GOLD Ônibus" },
+  { cidade:"Getulina", sentido:"VOLTA", hora:"17:30", plat:"3", veiculo:"GOLD Ônibus" },
+  { cidade:"Getulina", sentido:"VOLTA", hora:"17:50", plat:"3", veiculo:"GOLD Ônibus" },
+  { cidade:"Getulina", sentido:"VOLTA", hora:"18:20", plat:"3", veiculo:"GOLD Ônibus" },
+  { cidade:"Getulina", sentido:"VOLTA", hora:"22:50", plat:"3", veiculo:"GOLD Ônibus" },
+
+  /* PIRAJUÍ - Plataforma 8 */
+  { cidade:"Pirajuí", sentido:"IDA", hora:"14:20", plat:"8", veiculo:"GOLD Ônibus" },
+  { cidade:"Pirajuí", sentido:"VOLTA", hora:"01:40", plat:"8", veiculo:"GOLD Ônibus" },
+  { cidade:"Pirajuí", sentido:"VOLTA", hora:"02:30", plat:"8", veiculo:"Plena Van" },
+
+  /* GUAIÇARA - Plataforma 9 */
+  { cidade:"Guaiçara", sentido:"IDA", hora:"05:30", plat:"9", veiculo:"GOLD Ônibus" },
+  { cidade:"Guaiçara", sentido:"VOLTA", hora:"17:20", plat:"9", veiculo:"GOLD Ônibus" },
+
+  /* GUARANTÃ - Plataforma 8 */
+  { cidade:"Guarantã", sentido:"IDA", hora:"04:55", plat:"8", veiculo:"Plena Van" },
+  { cidade:"Guarantã", sentido:"VOLTA", hora:"15:30", plat:"8", veiculo:"Plena Van" },
+  { cidade:"Guarantã", sentido:"VOLTA", hora:"16:40", plat:"8", veiculo:"Plena Van" }
+];
+
+/* =========================================================
+   MUNICIPAL - HORÁRIOS COMPLETOS (Plena Lins)
+========================================================= */
+var DATA_MUNICIPAL_HORARIOS = [
+  { hora:"00:30", trajeto:"Ribeiro / Junqueira / Popular / Pasetto / Guaiçara", plat:"10, 12, 13, 14, 9" },
+  { hora:"01:45", trajeto:"Ribeiro / Junqueira / Popular / Pasetto / Guaiçara", plat:"10, 12, 13, 14, 9" },
+  { hora:"02:30", trajeto:"Ribeiro / Junqueira / Popular / Pasetto / Guaiçara", plat:"10, 12, 13, 14, 9" },
+  { hora:"03:20", trajeto:"Trajeto Completo", plat:"1 e 2" },
+  { hora:"04:00", trajeto:"Ribeiro / Junqueira / Popular / Pasetto / Guaiçara", plat:"10, 12, 13, 14, 9" },
+  { hora:"04:40", trajeto:"Saídas Regulares + Reforços (Ribeiro/Rebouças e Popular)", plat:"10, 11, 12, 13, 14" },
+  { hora:"05:40", trajeto:"Ribeiro / Junqueira / Popular / Pasetto / Guaiçara", plat:"10, 12, 13, 14, 9" },
+  { hora:"06:30", trajeto:"Ribeiro / Junqueira / Popular / Pasetto / Guaiçara", plat:"10, 12, 13, 14, 9" },
+  { hora:"07:40", trajeto:"Trajeto Completo", plat:"1 e 2" },
+  { hora:"09:40", trajeto:"Trajeto Completo", plat:"1 e 2" },
+  { hora:"11:30", trajeto:"Trajeto Completo", plat:"1 e 2" },
+  { hora:"13:00", trajeto:"Ribeiro / Junqueira / Popular / Pasetto / Guaiçara", plat:"10, 12, 13, 14, 9" },
+  { hora:"13:50", trajeto:"Ribeiro / Junqueira / Popular / Pasetto / Guaiçara", plat:"10, 12, 13, 14, 9" },
+  { hora:"14:20", trajeto:"Ribeiro / Junqueira / Popular / Pasetto / Guaiçara", plat:"10, 12, 13, 14, 9" },
+  { hora:"14:50", trajeto:"Ribeiro / Junqueira / Popular / Pasetto / Guaiçara", plat:"10, 12, 13, 14, 9" },
+  { hora:"15:20", trajeto:"Ribeiro / Junqueira / Popular / Pasetto / Guaiçara", plat:"10, 12, 13, 14, 9" },
+  { hora:"16:00", trajeto:"Saídas Regulares + Reforços", plat:"10, 11, 12, 13, 14" },
+  { hora:"16:20", trajeto:"Ribeiro / Junqueira / Popular / Pasetto / Guaiçara", plat:"10, 12, 13, 14, 9" },
+  { hora:"16:45", trajeto:"Saídas Regulares + Reforços", plat:"10, 11, 12, 13, 14" },
+  { hora:"17:20", trajeto:"Saídas Regulares + Reforço Popular", plat:"10, 12, 13, 14, 9" },
+  { hora:"17:50", trajeto:"Ribeiro / Junqueira / Popular / Pasetto / Guaiçara", plat:"10, 12, 13, 14, 9" },
+  { hora:"18:20", trajeto:"Ribeiro / Junqueira / Popular / Pasetto / Guaiçara", plat:"10, 12, 13, 14, 9" },
+  { hora:"19:00", trajeto:"Trajeto Completo", plat:"1 e 2" },
+  { hora:"20:00", trajeto:"Trajeto Completo", plat:"1 e 2" },
+  { hora:"21:05", trajeto:"Ribeiro / Junqueira / Popular / Pasetto / Guaiçara", plat:"10, 12, 13, 14, 9" },
+  { hora:"21:50", trajeto:"Ribeiro / Junqueira / Popular / Pasetto / Guaiçara", plat:"10, 12, 13, 14, 9" },
+  { hora:"22:50", trajeto:"Ribeiro / Junqueira / Popular / Pasetto / Guaiçara", plat:"10, 12, 13, 14, 9" }
+];
+
+/* =========================================================
+   MUNICIPAL - DETALHAMENTO DE ITINERÁRIOS E PONTOS
+========================================================= */
+var DATA_MUNICIPAL_PONTOS = [
+  {
+    itin: "Popular 1 (Plat. 14)",
+    pontos: "FRIG / Armazém / Madeireira / Creche S. Francisco / Prefeitura / Sobrado / Sussu / Creche Sta Maria / SOS Lilas"
+  },
+  {
+    itin: "Popular 2 (Plat. 14)",
+    pontos: "FRIG / Creche Sta Maria / Assembléia / Padaria Ki-Pão / Conrado / Sorveteria / Unilins / Ponto 4 / Sabesp / Colive"
+  },
+  {
+    itin: "Junqueira 1 (Plat. 12)",
+    pontos: "FRIG / Av. SP / W. Lima x Maria Felix / Farm. Bom Viver / Luiz Jefferson Monteiro x J. Pastorello / Creche R. Janeiro / Bagda Café / Nobrega Veiculos / Praça Junqueira / Posto Cinquentenário"
+  },
+  {
+    itin: "Junqueira 2 (Plat. 12)",
+    pontos: "FRIG / Petisco / Av. J Bossonaro x Antonio Grassi / Muro Palhaço / Av. J Bossonaro x Rua Oito / Antonio Alfonso / Muro Verde Paiol / Praça Junqueira / Posto Cinquentenário"
+  },
+  {
+    itin: "Pasetto 1 (Plat. 13)",
+    pontos: "FRIG / Unimed / Beca / W. Lima x J. Pastorello / Bar Azul / Posto / W. Gomes Ferreira x J. Pastorello"
+  },
+  {
+    itin: "Pasetto 2 (Plat. 13)",
+    pontos: "FRIG / Congregação / Merc. Scalfi / Sebastião Caetano Leal / Quadra / Guadalupe / Villas"
+  },
+  {
+    itin: "Ribeiro 1 (Plat. 10)",
+    pontos: "FRIG / Pampeana / NGA / Milma / Quadra Ribeiro / Cemic / Merc. Ponto / Conrado / Neguinho Lanches / Garagem / Funerária / Sabesp / PIT"
+  },
+  {
+    itin: "Ribeiro 2 (Plat. 10)",
+    pontos: "FRIG / Prolar / Coelho Neto / Santana / Hidrante Rua 7 / Praça Lins V"
+  },
+  {
+    itin: "Rebouças 1 (Plat. 10)",
+    pontos: "FRIG / Praça Fórum / Mix Doces / Dep. Gás / Merc. Epa / Predinhos / Igreja M. Eugênia / Carlins / Jorge Americano"
+  },
+  {
+    itin: "Rebouças 2 (Plat. 10)",
+    pontos: "FRIG / M. Guido Belon / Bar do Jhony / Mercado Araxá / Campo Linense"
+  },
+  {
+    itin: "Guaiçara 1 (Plat. 9)",
+    pontos: "FRIG / Guarita (Dom Bosco) / Guarita (Ferro Velho) / Geladeira / Rodoviária / Açougue / Praça Velório / Floricultura / Restaurante Ponto 9"
+  },
+  {
+    itin: "Guaiçara 2 (Plat. 9)",
+    pontos: "FRIG / ... / Elza Katsuk x Nelson Costa / Esq. Luiz Cruz (Escola) / Gás / Novapron (volta)"
+  },
+  {
+    itin: "Combinações Duplas",
+    pontos: "• Ribeiro/Rebouças: Ribeiro completo + início de Rebouças (até Igreja M. Eugênia)\n• Junqueira/Pasetto: Pasetto completo + Junqueira completo\n• Guaiçara/Sta Terezinha: FRIG / Pousada / Guarita / Geladeira / Rodoviária / Praça Velório / Elza Katsuk x Nelson Costa / Esq. Luiz Cruz / Escola / Novaprom / Floricultura / Restaurante Ponto 9 / M. Guido Belon / Bar do Jhony / Mercado Araxá / Campo Linense / Jorge Americano"
+  },
+  {
+    itin: "Reforços Especiais",
+    pontos: "• Reforço Popular (Plat. 14): Sussu / Creche Sta Maria / Ponto 4 / Sabesp / Colive\n• Reforço Ribeiro/Rebouças (Plat. 11): Praça Lins V / Igreja Lins VI / Bandeirantes / Adonay"
+  }
+];
+
+
+/* =========================================================
+   DISTÂNCIA
+========================================================= */
+
+function calcularDistancia(
+  lat1,
+  lon1,
+  lat2,
+  lon2
+) {
+
+  var R = 6371;
+
+  var dLat =
+    (lat2 - lat1) *
+    Math.PI / 180;
+
+  var dLon =
+    (lon2 - lon1) *
+    Math.PI / 180;
+
+  var a =
+    Math.sin(dLat / 2) *
+    Math.sin(dLat / 2) +
+
+    Math.cos(
+      lat1 * Math.PI / 180
+    ) *
+
+    Math.cos(
+      lat2 * Math.PI / 180
+    ) *
+
+    Math.sin(dLon / 2) *
+    Math.sin(dLon / 2);
+
+  return R *
+    (
+      2 *
+      Math.atan2(
+        Math.sqrt(a),
+        Math.sqrt(1 - a)
+      )
+    );
+
+}
+
+
+/* =========================================================
+   PRÓXIMO HORÁRIO
+========================================================= */
+
+function obterProximoHorario() {
+
+  if (
+    modoAtual !==
+    'INTERMUNICIPAL'
+  ) {
+
+    return null;
+
+  }
+
+
+  var cidade =
+    document
+      .getElementById(
+        'sel-cidade'
+      )
+      .value;
+
+
+  var agora =
+    new Date();
+
+
+  var minutosAgora =
+    agora.getHours() * 60 +
+    agora.getMinutes();
+
+
+  var horarios =
+    DATA_HORARIOS.filter(
+      function(h) {
+
+        return (
+          h.cidade === cidade &&
+          h.sentido === sentidoAtual
+        );
+
+      }
+    );
+
+
+  var proximo = null;
+
+  var menorDiferenca =
+    Infinity;
+
+
+  horarios.forEach(
+    function(h) {
+
+      var partes =
+        h.hora.split(':');
+
+
+      var minutos =
+        parseInt(partes[0]) * 60 +
+        parseInt(partes[1]);
+
+
+      var diferenca =
+        minutos - minutosAgora;
+
+
+      if (diferenca < 0) {
+
+        diferenca += 1440;
+
+      }
+
+
+      if (
+        diferenca <
+        menorDiferenca
+      ) {
+
+        menorDiferenca =
+          diferenca;
+
+        proximo = {
+
+          horario: h,
+
+          diferenca:
+            diferenca
+
+        };
+
+      }
+
+    }
+  );
+
+
+  return proximo;
+
+}
+
+
+/* =========================================================
+   MELHOR PONTO
+========================================================= */
+
+function encontrarMelhorPonto() {
+
+  if (!userPos) {
+
+    return null;
+
+  }
+
+
+  var cidade =
+    document
+      .getElementById(
+        'sel-cidade'
+      )
+      .value;
+
+
+  var pontos =
+    DATA_PONTOS.filter(
+      function(p) {
+
+        return (
+          p.cidade === cidade
+        );
+
+      }
+    );
+
+
+  if (!pontos.length) {
+
+    return null;
+
+  }
+
+
+  pontos.forEach(
+    function(p) {
+
+      p.dist =
+        calcularDistancia(
+
+          userPos.lat,
+          userPos.lng,
+
+          p.lat,
+          p.lng
+
+        );
+
+    }
+  );
+
+
+  pontos.sort(
+    function(a, b) {
+
+      return a.dist - b.dist;
+
+    }
+  );
+
+
+  return pontos[0];
+
+}
+
+
+/* =========================================================
+   TROCAR MODO
+========================================================= */
+
+function trocarModo(m) {
+
+  modoAtual = m;
+
+
+  document
+    .getElementById('tab-inter')
+    .className =
+      m === 'INTERMUNICIPAL'
+        ? 'btn-switch active'
+        : 'btn-switch';
+
+
+  document
+    .getElementById('tab-muni')
+    .className =
+      m === 'MUNICIPAL'
+        ? 'btn-switch active'
+        : 'btn-switch';
+
+
+  document
+    .getElementById('box-sentido')
+    .style.display =
+      m === 'INTERMUNICIPAL'
+        ? 'flex'
+        : 'none';
+
+
+  document
+    .getElementById('group-cidade')
+    .style.display =
+      m === 'INTERMUNICIPAL'
+        ? 'block'
+        : 'none';
+
+
+  document
+    .getElementById(
+      'lbl-titulo-pontos'
+    )
+    .innerText =
+      m === 'INTERMUNICIPAL'
+        ? '📍 Pontos Cadastrados'
+        : '🗺️ Itinerários e Paradas em Lins';
+
+
+  atualizarLabelTipo();
+
+
+  selectedDestination = null;
+
+  ultimoDestinoPonto = null;
+
+  lastRouteLat = null;
+
+  lastRouteLng = null;
+
+
+  if (routeLine) {
+
+    routeLine.setLatLngs([]);
+
+  }
+
+
+  if (
+    m !== 'INTERMUNICIPAL' &&
+    selectedMarker &&
+    leafletMap
+  ) {
+
+    leafletMap.removeLayer(
+      selectedMarker
+    );
+
+    selectedMarker = null;
+
+  }
+
+
+  recalcular();
+
+
+  if (leafletMap) {
+
+    desenharPontosSeNecessario();
+
+  }
+
+
+  if (
+    userPos &&
+    m === 'INTERMUNICIPAL'
+  ) {
+
+    atualizarMapaComGPS(
+      userPos
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   TROCAR SENTIDO
+========================================================= */
+
+function atualizarLabelTipo() {
+
+  document
+    .getElementById('lbl-tipo')
+    .innerText =
+      sentidoAtual === 'IDA'
+        ? 'PRÓXIMO EMBARQUE PARA A JBS'
+        : 'PRÓXIMO EMBARQUE NA JBS (VOLTA)';
+
+}
+
+
+function trocarSentido(s) {
+
+  sentidoAtual = s;
+
+
+  document
+    .getElementById('btn-ida')
+    .className =
+      s === 'IDA'
+        ? 'btn-switch active'
+        : 'btn-switch';
+
+
+  document
+    .getElementById('btn-volta')
+    .className =
+      s === 'VOLTA'
+        ? 'btn-switch active'
+        : 'btn-switch';
+
+
+  atualizarLabelTipo();
+
+
+  recalcular();
+
+}
+
+
+/* =========================================================
+   GPS
+========================================================= */
+
+function usarGPS() {
+
+  if (
+    !navigator.geolocation
+  ) {
+
+    alert(
+      'GPS não suportado neste aparelho.'
+    );
+
+    return;
+
+  }
+
+
+  if (
+    gpsWatchId !== null
+  ) {
+
+    pararGPS();
+
+    return;
+
+  }
+
+
+  var botao =
+    document.getElementById(
+      'btn-gps'
+    );
+
+
+  botao.innerText =
+    '🛰️ GPS ativo';
+
+
+  botao.classList.add(
+    'active'
+  );
+
+
+  document
+    .getElementById(
+      'txt-detalhes'
+    )
+    .innerText =
+    '📡 Obtendo sua localização...';
+
+
+  gpsWatchId =
+    navigator.geolocation.watchPosition(
+
+      function(pos) {
+
+        var novaPos = {
+
+          lat:
+            pos.coords.latitude,
+
+          lng:
+            pos.coords.longitude
+
+        };
+
+
+        userPos =
+          novaPos;
+
+
+        atualizarMapaComGPS(
+          novaPos
+        );
+
+
+        recalcular();
+
+      },
+
+
+      function(err) {
+
+        console.error(
+          'Erro GPS:',
+          err
+        );
+
+
+        alert(
+          'Não foi possível obter sua localização. Verifique a permissão do GPS.'
+        );
+
+
+        pararGPS();
+
+      },
+
+
+      {
+
+        enableHighAccuracy:
+          true,
+
+        maximumAge:
+          5000,
+
+        timeout:
+          15000
+
+      }
+
+    );
+
+}
+
+
+/* =========================================================
+   PARAR GPS
+========================================================= */
+
+function pararGPS() {
+
+  if (
+    gpsWatchId !== null
+  ) {
+
+    navigator.geolocation.clearWatch(
+      gpsWatchId
+    );
+
+    gpsWatchId = null;
+
+  }
+
+
+  var botao =
+    document.getElementById(
+      'btn-gps'
+    );
+
+
+  botao.innerText =
+    '📡 Usar GPS do Celular';
+
+
+  botao.classList.remove(
+    'active'
+  );
+
+}
+
+
+/* =========================================================
+   PREPARAR MAPA
+========================================================= */
+
+function prepararMapa() {
+
+  if (
+    typeof L ===
+    'undefined'
+  ) {
+
+    console.error(
+      'Leaflet não foi carregado.'
+    );
+
+    return;
+
+  }
+
+
+  var mapEl =
+    document.getElementById(
+      'map'
+    );
+
+
+  if (!mapEl) {
+
+    console.error(
+      'Elemento #map não encontrado.'
+    );
+
+    return;
+
+  }
+
+
+  mapEl.style.display =
+    'block';
+
+
+  if (!leafletMap) {
+
+    leafletMap =
+      L.map(
+        'map',
+        {
+          zoomControl:
+            true,
+
+          attributionControl:
+            true
+        }
+      )
+      .setView(
+        [-21.67, -49.75],
+        10
+      );
+
+
+    L.tileLayer(
+      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      {
+
+        attribution:
+          '&copy; OpenStreetMap contributors',
+
+        maxZoom:
+          19
+
+      }
+    )
+    .addTo(
+      leafletMap
+    );
+
+
+    allPointsLayer =
+      L.layerGroup()
+        .addTo(
+          leafletMap
+        );
+
+  }
+
+
+  setTimeout(
+    function() {
+
+      if (
+        leafletMap
+      ) {
+
+        leafletMap.invalidateSize(
+          true
+        );
+
+      }
+
+    },
+    100
+  );
+
+}
+
+
+/* =========================================================
+   DESENHAR PONTOS
+========================================================= */
+
+function desenharPontosSeNecessario() {
+
+  prepararMapa();
+
+
+  if (
+    !leafletMap ||
+    !allPointsLayer
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    modoAtual !==
+    'INTERMUNICIPAL'
+  ) {
+
+    allPointsLayer.clearLayers();
+
+    pontosCidadeAtual = null;
+
+    return;
+
+  }
+
+
+  var cidade =
+    document
+      .getElementById(
+        'sel-cidade'
+      )
+      .value;
+
+
+  if (
+    pontosCidadeAtual ===
+    cidade &&
+    allPointsLayer.getLayers()
+      .length > 0
+  ) {
+
+    return;
+
+  }
+
+
+  allPointsLayer.clearLayers();
+
+
+  pontosCidadeAtual =
+    cidade;
+
+
+  var pontos =
+    DATA_PONTOS.filter(
+      function(p) {
+
+        return (
+          p.cidade === cidade
+        );
+
+      }
+    );
+
+
+  var iconBus =
+    L.divIcon({
+
+      className:
+        'custom-pin',
+
+      html:
+        '🚏',
+
+      iconSize:
+        [28, 28],
+
+      iconAnchor:
+        [14, 14]
+
+    });
+
+
+  pontos.forEach(
+    function(p) {
+
+      var marker =
+        L.marker(
+
+          [
+            p.lat,
+            p.lng
+          ],
+
+          {
+            icon:
+              iconBus
+          }
+
+        );
+
+
+      marker.bindPopup(
+
+        '<strong>🚏 ' +
+        p.ponto +
+        '</strong><br>' +
+
+        p.loc
+
+      );
+
+
+      marker.addTo(
+        allPointsLayer
+      );
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   ATUALIZAR MAPA COM GPS
+========================================================= */
+
+function atualizarMapaComGPS(
+  posicao
+) {
+
+  prepararMapa();
+
+
+  if (!leafletMap) {
+
+    return;
+
+  }
+
+
+  desenharPontosSeNecessario();
+
+
+  if (
+    modoAtual !==
+    'INTERMUNICIPAL'
+  ) {
+
+    if (userMarker) {
+
+      userMarker.setLatLng(
+        [
+          posicao.lat,
+          posicao.lng
+        ]
+      );
+
+    } else {
+
+      criarMarcadorUsuario(
+        posicao
+      );
+
+    }
+
+    return;
+
+  }
+
+
+  if (!userMarker) {
+
+    criarMarcadorUsuario(
+      posicao
+    );
+
+  } else {
+
+    userMarker.setLatLng(
+
+      [
+        posicao.lat,
+        posicao.lng
+      ]
+
+    );
+
+  }
+
+
+  var destino =
+    encontrarMelhorPonto();
+
+
+  if (!destino) {
+
+    document
+      .getElementById(
+        'txt-detalhes'
+      )
+      .innerText =
+      '📍 Nenhum ponto encontrado.';
+
+    return;
+
+  }
+
+
+  var destinoMudou =
+    ultimoDestinoPonto !==
+    destino.ponto;
+
+
+  selectedDestination =
+    destino;
+
+
+  ultimoDestinoPonto =
+    destino.ponto;
+
+
+  criarOuAtualizarMarcadorDestino(
+    destino
+  );
+
+
+  if (
+    lastRouteLat === null ||
+    lastRouteLng === null
+  ) {
+
+    desenharRotaSemOscilacao(
+      posicao,
+      destino
+    );
+
+    return;
+
+  }
+
+
+  if (destinoMudou) {
+
+    desenharRotaSemOscilacao(
+      posicao,
+      destino
+    );
+
+    return;
+
+  }
+
+
+  var distanciaAtual =
+    calcularDistancia(
+
+      lastRouteLat,
+      lastRouteLng,
+
+      posicao.lat,
+      posicao.lng
+
+    ) * 1000;
+
+
+  if (
+    distanciaAtual >=
+    MIN_ROUTE_UPDATE_METERS
+  ) {
+
+    desenharRotaSemOscilacao(
+      posicao,
+      destino
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   MARCADOR DO USUÁRIO
+========================================================= */
+
+function criarMarcadorUsuario(
+  posicao
+) {
+
+  var iconUser =
+    L.divIcon({
+
+      className:
+        'custom-pin',
+
+      html:
+        '👤',
+
+      iconSize:
+        [32, 32],
+
+      iconAnchor:
+        [16, 16]
+
+    });
+
+
+  userMarker =
+    L.marker(
+
+      [
+        posicao.lat,
+        posicao.lng
+      ],
+
+      {
+        icon:
+          iconUser
+      }
+
+    )
+    .addTo(
+      leafletMap
+    )
+    .bindPopup(
+      '📍 Você'
+    );
+
+}
+
+
+/* =========================================================
+   MARCADOR DO DESTINO
+========================================================= */
+
+function criarOuAtualizarMarcadorDestino(
+  destino
+) {
+
+  var iconSelected =
+    L.divIcon({
+
+      className:
+        'custom-pin',
+
+      html:
+        '🚌',
+
+      iconSize:
+        [34, 34],
+
+      iconAnchor:
+        [17, 17]
+
+    });
+
+
+  if (!selectedMarker) {
+
+    selectedMarker =
+      L.marker(
+
+        [
+          destino.lat,
+          destino.lng
+        ],
+
+        {
+          icon:
+            iconSelected
+        }
+
+      )
+      .addTo(
+        leafletMap
+      );
+
+  } else {
+
+    selectedMarker.setLatLng(
+
+      [
+        destino.lat,
+        destino.lng
+      ]
+
+    );
+
+  }
+
+
+  var proximo =
+    obterProximoHorario();
+
+
+  var textoHorario =
+    '';
+
+
+  if (proximo) {
+
+    textoHorario =
+      '<br>⏰ Próximo ônibus: <strong>' +
+      proximo.horario.hora +
+      '</strong>';
+
+  }
+
+
+  selectedMarker.bindPopup(
+
+    '<strong>🚌 Próximo ponto recomendado</strong><br>' +
+
+    destino.ponto +
+
+    '<br>' +
+
+    destino.dist.toFixed(2) +
+
+    ' km' +
+
+    textoHorario
+
+  );
+
+}
+
+
+/* =========================================================
+   DESENHAR ROTA
+========================================================= */
+
+function desenharRotaSemOscilacao(
+  origem,
+  destino
+) {
+
+  if (!leafletMap) {
+
+    return;
+
+  }
+
+
+  if (routeBusy) {
+
+    return;
+
+  }
+
+
+  routeBusy =
+    true;
+
+
+  lastRouteLat =
+    origem.lat;
+
+  lastRouteLng =
+    origem.lng;
+
+
+  document
+    .getElementById(
+      'txt-detalhes'
+    )
+    .innerHTML =
+
+      '🗺️ Calculando rota até <strong>' +
+
+      destino.ponto +
+
+      '</strong>...';
+
+
+  if (
+    typeof google !==
+      'undefined' &&
+
+    google.script &&
+
+    google.script.run
+  ) {
+
+    google.script.run
+
+      .withSuccessHandler(
+        function(data) {
+
+          routeBusy =
+            false;
+
+
+          if (
+            data &&
+            data.coordinates &&
+            data.coordinates.length > 1
+          ) {
+
+            atualizarLinhaDaRota(
+              data.coordinates
+            );
+
+            return;
+
+          }
+
+
+          buscarRotaDireta(
+            origem,
+            destino
+          );
+
+        }
+      )
+
+
+      .withFailureHandler(
+        function(error) {
+
+          console.error(
+            'Erro Apps Script:',
+            error
+          );
+
+
+          routeBusy =
+            false;
+
+
+          buscarRotaDireta(
+            origem,
+            destino
+          );
+
+        }
+      )
+
+
+      .obterRota(
+
+        origem.lat,
+        origem.lng,
+
+        destino.lat,
+        destino.lng
+
+      );
+
+
+  } else {
+
+    routeBusy =
+      false;
+
+
+    buscarRotaDireta(
+      origem,
+      destino
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   ATUALIZAR LINHA DA ROTA
+========================================================= */
+
+function atualizarLinhaDaRota(
+  coordinates
+) {
+
+  if (!leafletMap) {
+
+    return;
+
+  }
+
+
+  if (
+    !coordinates ||
+    coordinates.length < 2
+  ) {
+
+    return;
+
+  }
+
+
+  var coords =
+    coordinates.map(
+      function(c) {
+
+        return [
+
+          parseFloat(c[1]),
+
+          parseFloat(c[0])
+
+        ];
+
+      }
+    );
+
+
+  if (!routeLine) {
+
+    routeLine =
+      L.polyline(
+
+        coords,
+
+        {
+
+          color:
+            '#00BFFF',
+
+          weight:
+            5,
+
+          opacity:
+            0.9,
+
+          lineCap:
+            'round',
+
+          lineJoin:
+            'round'
+
+        }
+
+      )
+      .addTo(
+        leafletMap
+      );
+
+
+  } else {
+
+    routeLine.setLatLngs(
+      coords
+    );
+
+  }
+
+
+  document
+    .getElementById(
+      'txt-detalhes'
+    )
+    .innerHTML =
+
+      '🗺️ Rota até <strong>' +
+
+      (
+        selectedDestination
+          ? selectedDestination.ponto
+          : 'o ponto'
+      ) +
+
+      '</strong> seguindo as ruas.';
+
+}
+
+
+/* =========================================================
+   GEOCODIFICAÇÃO DIRETA (NOMINATIM)
+   Usada quando não há backend do Apps Script disponível
+   (versão estática hospedada no GitHub Pages).
+========================================================= */
+
+function consultarNominatimCliente(query) {
+
+  var url =
+    'https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&q=' +
+    encodeURIComponent(query);
+
+  return fetch(url)
+    .then(function(response) {
+
+      if (!response.ok) {
+        return [];
+      }
+
+      return response.json();
+
+    })
+    .then(function(data) {
+
+      if (data && data.length > 0) {
+
+        return {
+          lat: parseFloat(data[0].lat),
+          lng: parseFloat(data[0].lon)
+        };
+
+      }
+
+      return null;
+
+    })
+    .catch(function(err) {
+
+      console.error('Erro no geocode:', err);
+
+      return null;
+
+    });
+
+}
+
+
+function geocodeEnderecoCliente(endereco) {
+
+  return consultarNominatimCliente(endereco)
+    .then(function(coords) {
+
+      if (coords) {
+        return coords;
+      }
+
+      var enderecoSemNumero =
+        String(endereco)
+          .replace(/\d+/g, '')
+          .replace(/\s+/g, ' ')
+          .trim();
+
+      if (enderecoSemNumero !== endereco) {
+        return consultarNominatimCliente(enderecoSemNumero);
+      }
+
+      return null;
+
+    });
+
+}
+
+
+/* =========================================================
+   ROTA DIRETA OSRM
+========================================================= */
+
+function buscarRotaDireta(
+  origem,
+  destino
+) {
+
+  var url =
+
+    'https://router.project-osrm.org/route/v1/driving/' +
+
+    origem.lng +
+    ',' +
+    origem.lat +
+
+    ';' +
+
+    destino.lng +
+    ',' +
+    destino.lat +
+
+    '?overview=full&geometries=geojson';
+
+
+  fetch(url)
+
+    .then(
+      function(response) {
+
+        if (!response.ok) {
+
+          throw new Error(
+            'HTTP ' +
+            response.status
+          );
+
+        }
+
+
+        return response.json();
+
+      }
+    )
+
+
+    .then(
+      function(data) {
+
+        routeBusy =
+          false;
+
+
+        if (
+          data &&
+          data.routes &&
+          data.routes.length > 0 &&
+          data.routes[0].geometry &&
+          data.routes[0].geometry.coordinates
+        ) {
+
+          atualizarLinhaDaRota(
+
+            data.routes[0]
+              .geometry
+              .coordinates
+
+          );
+
+        } else {
+
+          throw new Error(
+            'Nenhuma rota encontrada'
+          );
+
+        }
+
+      }
+    )
+
+
+    .catch(
+      function(error) {
+
+        routeBusy =
+          false;
+
+
+        console.error(
+          'Erro no roteamento:',
+          error
+        );
+
+
+        document
+          .getElementById(
+            'txt-detalhes'
+          )
+          .innerText =
+          '⚠️ Não foi possível calcular a rota pelas ruas.';
+
+      }
+    );
+
+}
+
+
+/* =========================================================
+   BUSCAR ENDEREÇO
+========================================================= */
+
+function buscarEndereco() {
+
+  var rua =
+    document
+      .getElementById(
+        'ipt-rua'
+      )
+      .value.trim();
+
+
+  var cidade =
+    document
+      .getElementById(
+        'sel-cidade'
+      )
+      .value;
+
+
+  if (!rua) {
+
+    alert(
+      'Digite o endereço.'
+    );
+
+    return;
+
+  }
+
+
+  var ruaTratada =
+    rua
+
+      .replace(
+        /Rua:|Av:|Avenida:|Praça:/gi,
+        ''
+      )
+
+      .replace(
+        /\sx\s/gi,
+        ' e '
+      )
+
+      .trim();
+
+
+  var queryCompleta =
+    ruaTratada +
+    ', ' +
+    cidade +
+    ', SP, Brasil';
+
+
+  document
+    .getElementById(
+      'txt-detalhes'
+    )
+    .innerText =
+    '⏳ Buscando endereço...';
+
+
+  if (
+    typeof google !==
+      'undefined' &&
+
+    google.script &&
+
+    google.script.run
+  ) {
+
+    google.script.run
+
+      .withSuccessHandler(
+        function(coords) {
+
+          if (
+            coords &&
+            coords.lat !== undefined &&
+            coords.lng !== undefined
+          ) {
+
+            userPos = {
+
+              lat:
+                parseFloat(
+                  coords.lat
+                ),
+
+              lng:
+                parseFloat(
+                  coords.lng
+                )
+
+            };
+
+
+            atualizarMapaComGPS(
+              userPos
+            );
+
+
+            recalcular();
+
+
+          } else {
+
+            alert(
+              'Endereço não localizado.'
+            );
+
+          }
+
+        }
+      )
+
+
+      .withFailureHandler(
+        function(error) {
+
+          console.error(
+            error
+          );
+
+
+          alert(
+            'Erro na busca de endereço.'
+          );
+
+        }
+      )
+
+
+      .geocodeEndereco(
+
+        queryCompleta
+
+      );
+
+
+  } else {
+
+    geocodeEnderecoCliente(queryCompleta)
+
+      .then(function(coords) {
+
+        if (coords) {
+
+          userPos = coords;
+
+          atualizarMapaComGPS(
+            userPos
+          );
+
+          recalcular();
+
+        } else {
+
+          alert(
+            'Endereço não localizado.'
+          );
+
+        }
+
+      })
+
+      .catch(function(err) {
+
+        console.error(err);
+
+        alert(
+          'Erro na busca de endereço.'
+        );
+
+      });
+
+  }
+
+}
+
+
+/* =========================================================
+   RECALCULAR
+========================================================= */
+
+function recalcular() {
+
+  renderizarPontos();
+
+  renderizarHorarios();
+
+}
+
+
+/* =========================================================
+   LISTA DE PONTOS
+========================================================= */
+
+function renderizarPontos() {
+
+  var div =
+    document.getElementById(
+      'lista-pontos'
+    );
+
+
+  div.innerHTML =
+    '';
+
+
+  if (
+    modoAtual !==
+    'INTERMUNICIPAL'
+  ) {
+
+    DATA_MUNICIPAL_PONTOS
+      .forEach(
+        function(p) {
+
+          div.innerHTML +=
+
+            '<div class="item" ' +
+
+            'style="' +
+
+            'flex-direction:column;' +
+
+            'align-items:flex-start;' +
+
+            'gap:4px;' +
+
+            '">' +
+
+            '<strong style="color:#00BFFF;">' +
+
+            '🚌 Linha: ' +
+
+            p.itin +
+
+            '</strong>' +
+
+            '<span style="' +
+
+            'font-size:0.78rem;' +
+
+            'color:#444;' +
+
+            '">' +
+
+            p.pontos +
+
+            '</span>' +
+
+            '</div>';
+
+        }
+      );
+
+    return;
+
+  }
+
+
+  var cidade =
+    document
+      .getElementById(
+        'sel-cidade'
+      )
+      .value;
+
+
+  var lista =
+    DATA_PONTOS.filter(
+      function(p) {
+
+        return (
+          p.cidade === cidade
+        );
+
+      }
+    );
+
+
+  if (userPos) {
+
+    lista.forEach(
+      function(p) {
+
+        p.dist =
+          calcularDistancia(
+
+            userPos.lat,
+            userPos.lng,
+
+            p.lat,
+            p.lng
+
+          );
+
+      }
+    );
+
+
+    lista.sort(
+      function(a, b) {
+
+        return a.dist - b.dist;
+
+      }
+    );
+
+  }
+
+
+  lista.forEach(
+    function(p) {
+
+      var selecionado =
+
+        selectedDestination &&
+
+        selectedDestination.ponto ===
+          p.ponto;
+
+
+      div.innerHTML +=
+
+
+        '<div class="item ' +
+
+        (
+
+          selecionado
+
+            ? 'point-selected'
+
+            : ''
+
+        ) +
+
+        '">' +
+
+        '<div>' +
+
+        '<strong>📍 ' +
+
+        p.ponto +
+
+        '</strong><br>' +
+
+        '<span style="' +
+
+        'font-size:0.75rem;' +
+
+        'color:#666;' +
+
+        '">' +
+
+        p.loc +
+
+        '</span>' +
+
+        '</div>' +
+
+        '<span class="dist-tag">' +
+
+        (
+
+          p.dist !== undefined
+
+            ? p.dist.toFixed(2) +
+
+              ' km'
+
+            : ''
+
+        ) +
+
+        '</span>' +
+
+        '</div>';
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   LISTA DE HORÁRIOS
+========================================================= */
+
+function renderizarHorarios() {
+
+  var div =
+    document.getElementById(
+      'lista-horarios'
+    );
+
+
+  div.innerHTML =
+    '';
+
+
+  var agora =
+    new Date();
+
+
+  var minutosAgora =
+    agora.getHours() * 60 +
+    agora.getMinutes();
+
+
+  var listaHorarios = [];
+
+
+  if (
+    modoAtual ===
+    'INTERMUNICIPAL'
+  ) {
+
+    var cidade =
+      document
+        .getElementById(
+          'sel-cidade'
+        )
+        .value;
+
+
+    listaHorarios =
+      DATA_HORARIOS.filter(
+        function(h) {
+
+          return (
+
+            h.cidade ===
+              cidade &&
+
+            h.sentido ===
+              sentidoAtual
+
+          );
+
+        }
+      );
+
+
+  } else {
+
+    listaHorarios =
+      DATA_MUNICIPAL_HORARIOS;
+
+  }
+
+
+  var proximo =
+    null;
+
+
+  var menorDiff =
+    Infinity;
+
+
+  listaHorarios.forEach(
+    function(h) {
+
+      var partes =
+        h.hora.split(':');
+
+
+      var minViagem =
+        parseInt(partes[0]) * 60 +
+        parseInt(partes[1]);
+
+
+      var diff =
+        minViagem -
+        minutosAgora;
+
+
+      if (diff < 0) {
+
+        diff += 1440;
+
+      }
+
+
+      if (
+        diff <
+        menorDiff
+      ) {
+
+        menorDiff =
+          diff;
+
+        proximo =
+          h;
+
+      }
+
+
+      div.innerHTML +=
+
+        '<div class="item">' +
+
+        '<div>' +
+
+        '<strong>' +
+
+        h.hora +
+
+        ' hs</strong> ' +
+
+        (
+
+          h.veiculo
+
+            ? '- ' +
+              h.veiculo
+
+            : ''
+
+        ) +
+
+        '<div style="' +
+
+        'font-size:0.75rem;' +
+
+        'color:#666;' +
+
+        '">' +
+
+        (
+
+          h.trajeto ||
+          ''
+
+        ) +
+
+        '</div>' +
+
+        '</div>' +
+
+        '<span class="status">' +
+
+        'Plat. ' +
+
+        h.plat +
+
+        '</span>' +
+
+        '</div>';
+
+    }
+  );
+
+
+  if (!proximo) {
+
+    document
+      .getElementById(
+        'txt-horario'
+      )
+      .innerText =
+      '--:--';
+
+
+    document
+      .getElementById(
+        'txt-contador'
+      )
+      .innerText =
+      'Sem horários cadastrados';
+
+
+    return;
+
+  }
+
+
+  document
+    .getElementById(
+      'txt-horario'
+    )
+    .innerText =
+    proximo.hora;
+
+
+  var horas =
+    Math.floor(
+      menorDiff / 60
+    );
+
+
+  var minutos =
+    menorDiff % 60;
+
+
+  document
+    .getElementById(
+      'txt-contador'
+    )
+    .innerText =
+
+      horas > 0
+
+        ? 'Saída em ~' +
+          horas +
+          'h ' +
+          minutos +
+          'min'
+
+        : 'Saída em ~' +
+          minutos +
+          ' min';
+
+
+  var detalhe = '';
+
+if (modoAtual === 'INTERMUNICIPAL') {
+
+  detalhe =
+
+    '🏷️ <strong>Plataforma / Tipo:</strong> ' +
+
+    proximo.plat +
+
+    '<br>' +
+
+    '🚌 <strong>Veículo:</strong> ' +
+
+    (
+      proximo.veiculo ||
+      'Linha Regular'
+    );
+
+} else {
+
+  detalhe =
+
+    '🚌 <strong>Próxima saída para a JBS</strong>' +
+
+    '<br>' +
+
+    '🏷️ <strong>Plataforma de chegada na JBS:</strong> ' +
+
+    proximo.plat +
+
+    '<br>' +
+
+    '📍 <strong>Destino:</strong> JBS';
+
+}
+
+
+  if (
+    selectedDestination &&
+    modoAtual ===
+      'INTERMUNICIPAL'
+  ) {
+
+    detalhe +=
+
+      '<br>📍 <strong>Ponto recomendado:</strong> ' +
+
+      selectedDestination.ponto +
+
+      '<br>📏 <strong>Distância:</strong> ' +
+
+      selectedDestination.dist.toFixed(2) +
+
+      ' km';
+
+  }
+
+
+  document
+    .getElementById(
+      'txt-detalhes'
+    )
+    .innerHTML =
+    detalhe;
+
+}
+
+
+/* =========================================================
+   INICIALIZAÇÃO
+========================================================= */
+
+document.addEventListener(
+
+  'DOMContentLoaded',
+
+  function() {
+
+
+    document
+      .getElementById(
+        'tab-inter'
+      )
+      .addEventListener(
+        'click',
+        function() {
+
+          trocarModo(
+            'INTERMUNICIPAL'
+          );
+
+        }
+      );
+
+
+    document
+      .getElementById(
+        'tab-muni'
+      )
+      .addEventListener(
+        'click',
+        function() {
+
+          trocarModo(
+            'MUNICIPAL'
+          );
+
+        }
+      );
+
+
+    document
+      .getElementById(
+        'btn-ida'
+      )
+      .addEventListener(
+        'click',
+        function() {
+
+          trocarSentido(
+            'IDA'
+          );
+
+        }
+      );
+
+
+    document
+      .getElementById(
+        'btn-volta'
+      )
+      .addEventListener(
+        'click',
+        function() {
+
+          trocarSentido(
+            'VOLTA'
+          );
+
+        }
+      );
+
+
+    document
+      .getElementById(
+        'sel-cidade'
+      )
+      .addEventListener(
+        'change',
+        function() {
+
+          selectedDestination =
+            null;
+
+          ultimoDestinoPonto =
+            null;
+
+          lastRouteLat =
+            null;
+
+          lastRouteLng =
+            null;
+
+          pontosCidadeAtual =
+            null;
+
+
+          if (routeLine) {
+
+            routeLine.setLatLngs(
+              []
+            );
+
+          }
+
+
+          recalcular();
+
+
+          if (userPos) {
+
+            desenharPontosSeNecessario();
+
+            atualizarMapaComGPS(
+              userPos
+            );
+
+          }
+
+        }
+      );
+
+
+    document
+      .getElementById(
+        'btn-gps'
+      )
+      .addEventListener(
+        'click',
+        usarGPS
+      );
+
+
+    document
+      .getElementById(
+        'btn-search'
+      )
+      .addEventListener(
+        'click',
+        buscarEndereco
+      );
+
+
+    recalcular();
+
+
+    prepararMapa();
+
+    desenharPontosSeNecessario();
+
+
+    setInterval(
+      function() {
+
+        renderizarHorarios();
+
+      },
+      60000
+    );
+
+
+  }
+
+);
+
+
+</script>
+
+
+</body>
+
+</html>
+
