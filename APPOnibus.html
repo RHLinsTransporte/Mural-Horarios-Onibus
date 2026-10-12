@@ -3391,9 +3391,11 @@ document.addEventListener(
           recalcular();
 
 
-          if (userPos) {
+          // Always render points for the selected city so markers
+          // are visible even when GPS (userPos) is not active.
+          desenharPontosSeNecessario();
 
-            desenharPontosSeNecessario();
+          if (userPos) {
 
             atualizarMapaComGPS(
               userPos

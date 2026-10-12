@@ -379,12 +379,12 @@ var DATA_PONTOS = [
     lng:-49.6115
   },
 
-  {
+  {/*Corrigido LAT LONG*/
     cidade:"Cafelândia",
     ponto:"MADEREIRA",
-    loc:"Rua: Brasil x Via De acesso SP300",
-    lat:-21.8010,
-    lng:-49.6080
+    loc:"Rua: Napoleao Laureano x Via De acesso SP300",
+    lat:-21.811722,
+    lng:-49.603836
   },
 
   {/*Corrigido LAT LONG*/
@@ -481,12 +481,13 @@ var DATA_PONTOS = [
 
   /* SABINO */
 
-  {
+  {/*Corrigido LAT LONG*/
     cidade:"Sabino",
     ponto:"S.O.S",
     loc:"Av. Mar Rondon x Rua. Aurora Arterozani",
-    lat:-21.4603,
-    lng:-49.5746
+    lat:-21.460330,
+    lng:-49.574649
+
   },
 
   {
@@ -537,20 +538,20 @@ var DATA_PONTOS = [
     lng:-49.5720
   },
 
-  {
+  {/*Corrigido LAT LONG*/
     cidade:"Sabino",
     ponto:"2º ESQUINA (ANCHIETA)",
     loc:"Av: Padre Anchieta x Rua: Rui Barbosa",
-    lat:-21.4645,
-    lng:-49.5715
+    lat:-21.461702,
+    lng:-49.581045
   },
 
-  {
+  {/*Corrigido LAT LONG*/
     cidade:"Sabino",
     ponto:"POSTO DA SAÍDA",
     loc:"Av: Padre Anchieta x Rua: Joaquim Nabuco",
-    lat:-21.4650,
-    lng:-49.5710
+    lat:-21.462626,
+    lng:-49.582629
   },
 
   {
@@ -775,12 +776,12 @@ var DATA_PONTOS = [
     lng:-49.8920
   },
 
-  {
+  {/*Corrigido LAT LONG*/
     cidade:"Guaimbê",
     ponto:"RODOVIARIA",
     loc:"Terminal Rodoviário",
-    lat:-21.9110,
-    lng:-49.8930
+    lat:-21.910033,
+    lng:-49.895436
   },
 
   {
@@ -791,71 +792,70 @@ var DATA_PONTOS = [
     lng:-49.8940
   },
 
-  {
+  {/*Corrigido LAT LONG*/
     cidade:"Guaimbê",
     ponto:"PONTO ONIBUS",
     loc:"Rua: Iwai Shingo saída x Estrada Municipal",
-    lat:-21.9130,
-    lng:-49.8950
+    lat:-21.909016,
+    lng:-49.893217
   },
-
 
   /* GETULINA */
 
-  {
+  {/*Corrigido LAT LONG*/
     cidade:"Getulina",
     ponto:"CAMPÃO",
     loc:"Rua: Whashington Luis x Barão do Rio Branco",
-    lat:-21.7980,
-    lng:-49.9320
+    lat:-21.800261,
+    lng:-49.925386
   },
 
-  {
+  {/*Corrigido LAT LONG*/
     cidade:"Getulina",
     ponto:"POSTÃO",
     loc:"Rua: Dino Bueno x Av: Da Saudade",
-    lat:-21.7990,
-    lng:-49.9310
+    lat:-21.801151,
+    lng:-49.931256
   },
 
-  {
+  {/*Corrigido LAT LONG*/
     cidade:"Getulina",
     ponto:"MERCADO",
     loc:"Av: Da Saudade x Rua: Afonso Pena",
-    lat:-21.7995,
-    lng:-49.9305
+    lat:-21.801082,
+    lng:-49.937001
   },
 
-  {
+  {/*Corrigido LAT LONG*/
     cidade:"Getulina",
     ponto:"BICO E BETO",
     loc:"Av: Lucinda Martins x Rua: Afonso Pena",
-    lat:-21.7985,
-    lng:-49.9295
+    lat:-21.799347,
+    lng:-49.936993
   },
 
-  {
+  {/*Corrigido LAT LONG*/
     cidade:"Getulina",
     ponto:"POSTO SANDES",
     loc:"Av: Lucinda Martins x Rua: Fernando Costa",
-    lat:-21.7975,
-    lng:-49.9285
+    lat:-21.799226,
+    lng:-49.933295
   },
 
-  {
+  {/*Corrigido LAT LONG*/
     cidade:"Getulina",
     ponto:"RODOVIÁRIA",
     loc:"Rua: Dom Pedro x Rua: Lacerda Franco",
-    lat:-21.8000,
-    lng:-49.9300
+    lat:-21.799432,
+    lng:-49.930207
   },
 
-  {
+  {/*Corrigido LAT LONG*/
     cidade:"Getulina",
     ponto:"DEPOSITO BEBIDAS",
     loc:"Rua: Lacerda Franco",
-    lat:-21.8010,
-    lng:-49.9310
+    lat:-21.796110,
+    lng:-49.930243
   },
 
   {
@@ -869,20 +869,20 @@ var DATA_PONTOS = [
 
   /* GUARANTÃ */
 
-  {
+  { /*Corrigido LAT LONG*/
     cidade:"Guarantã",
     ponto:"PREFEITURA",
     loc:"Centro",
-    lat:-21.8800,
-    lng:-49.5800
+    lat:-21.897582,
+    lng:-49.590322
   },
 
   {
     cidade:"Guarantã",
     ponto:"GINÁSIO",
     loc:"Ginásio de Esportes",
-    lat:-21.8810,
-    lng:-49.5810
+    lat:-9.950253,
+    lng:-49
   },
 
   {
@@ -3493,9 +3493,11 @@ document.addEventListener(
           recalcular();
 
 
-          if (userPos) {
+          // Always render points for the selected city so markers
+          // are visible even when GPS (userPos) is not active.
+          desenharPontosSeNecessario();
 
-            desenharPontosSeNecessario();
+          if (userPos) {
 
             atualizarMapaComGPS(
               userPos
