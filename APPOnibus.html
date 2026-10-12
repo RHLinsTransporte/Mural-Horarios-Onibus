@@ -1376,6 +1376,14 @@ function encontrarMelhorPonto() {
     }
   );
 
+  // DEBUG: log distances for diagnosis
+  try {
+    console.groupCollapsed('Debug: distâncias para pontos (cidade=' + cidade + ')');
+    pontos.forEach(function(p){
+      console.log(p.ponto + ':', p.dist.toFixed(2) + ' m', 'coords:', p.lat, p.lng);
+    });
+    console.groupEnd();
+  } catch(e) {}
 
   pontos.sort(
     function(a, b) {
