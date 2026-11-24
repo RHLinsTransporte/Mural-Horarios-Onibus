@@ -1068,7 +1068,45 @@ var DATA_HORARIOS = [
   /* GUARANTÃ - Plataforma 8 */
   { cidade:"Guarantã", sentido:"IDA", hora:"04:55", plat:"8", veiculo:"Plena Van" },
   { cidade:"Guarantã", sentido:"VOLTA", hora:"15:30", plat:"8", veiculo:"Plena Van" },
-  { cidade:"Guarantã", sentido:"VOLTA", hora:"16:40", plat:"8", veiculo:"Plena Van" }
+  { cidade:"Guarantã", sentido:"VOLTA", hora:"16:40", plat:"8", veiculo:"Plena Van" },
+
+  /* =======================================================
+     HORÁRIOS DE DOMINGO (dia:"DOM")
+     Pirajuí, Guarantã e Agrovila Central não circulam aos
+     domingos (sem registro = sem horário nesse dia).
+  ======================================================= */
+
+  /* CAFELÂNDIA - Domingo (Plataforma 8) */
+  { cidade:"Cafelândia", sentido:"IDA", hora:"05:00", plat:"8", dia:"DOM" },
+  { cidade:"Cafelândia", sentido:"VOLTA", hora:"17:40", plat:"8", dia:"DOM" },
+  { cidade:"Cafelândia", sentido:"VOLTA", hora:"18:10", plat:"8", dia:"DOM" },
+
+  /* SABINO - Domingo (Plataforma 7) */
+  { cidade:"Sabino", sentido:"IDA", hora:"05:00", plat:"7", dia:"DOM" },
+  { cidade:"Sabino", sentido:"VOLTA", hora:"14:40", plat:"7", dia:"DOM" },
+  { cidade:"Sabino", sentido:"VOLTA", hora:"17:00", plat:"7", dia:"DOM" },
+  { cidade:"Sabino", sentido:"VOLTA", hora:"18:10", plat:"7", dia:"DOM" },
+
+  /* PROMISSÃO - Domingo (Plataforma 1) */
+  { cidade:"Promissão", sentido:"IDA", hora:"05:00", plat:"1", dia:"DOM" },
+  { cidade:"Promissão", sentido:"VOLTA", hora:"17:00", plat:"1", dia:"DOM" },
+  { cidade:"Promissão", sentido:"VOLTA", hora:"18:10", plat:"1", dia:"DOM" },
+
+  /* GUAIMBÊ - Domingo (Plataforma 4) */
+  { cidade:"Guaimbê", sentido:"IDA", hora:"05:00", plat:"4", dia:"DOM" },
+  { cidade:"Guaimbê", sentido:"VOLTA", hora:"14:40", plat:"4", dia:"DOM" },
+  { cidade:"Guaimbê", sentido:"VOLTA", hora:"17:00", plat:"4", dia:"DOM" },
+  { cidade:"Guaimbê", sentido:"VOLTA", hora:"18:10", plat:"4", dia:"DOM" },
+
+  /* GETULINA - Domingo (Plataforma 3) */
+  { cidade:"Getulina", sentido:"IDA", hora:"05:00", plat:"3", dia:"DOM" },
+  { cidade:"Getulina", sentido:"VOLTA", hora:"18:10", plat:"3", dia:"DOM" },
+
+  /* GUAIÇARA - Domingo (Plataforma 9, linha combinada com Lins) */
+  { cidade:"Guaiçara", sentido:"IDA", hora:"04:40", plat:"9", dia:"DOM" },
+  { cidade:"Guaiçara", sentido:"VOLTA", hora:"14:30", plat:"9", dia:"DOM" },
+  { cidade:"Guaiçara", sentido:"VOLTA", hora:"16:40", plat:"9", dia:"DOM" },
+  { cidade:"Guaiçara", sentido:"VOLTA", hora:"18:10", plat:"9", dia:"DOM" }
 ];
 
 /* =========================================================
@@ -1101,7 +1139,15 @@ var DATA_MUNICIPAL_HORARIOS = [
   { hora:"20:00", trajeto:"Trajeto Completo", plat:"1 e 2" },
   { hora:"21:05", trajeto:"Ribeiro / Junqueira / Popular / Pasetto / Guaiçara", plat:"10, 12, 13, 14, 9" },
   { hora:"21:50", trajeto:"Ribeiro / Junqueira / Popular / Pasetto / Guaiçara", plat:"10, 12, 13, 14, 9" },
-  { hora:"22:50", trajeto:"Ribeiro / Junqueira / Popular / Pasetto / Guaiçara", plat:"10, 12, 13, 14, 9" }
+  { hora:"22:50", trajeto:"Ribeiro / Junqueira / Popular / Pasetto / Guaiçara", plat:"10, 12, 13, 14, 9" },
+
+  /* =======================================================
+     DOMINGO - linha combinada Lins / Guaiçara (dia:"DOM")
+  ======================================================= */
+  { hora:"04:40", trajeto:"Domingo — Lins / Guaiçara (coleta, indo p/ JBS)", plat:"9", dia:"DOM" },
+  { hora:"14:30", trajeto:"Domingo — Lins / Guaiçara (retorno da JBS)", plat:"9", dia:"DOM" },
+  { hora:"16:40", trajeto:"Domingo — Lins / Guaiçara (retorno da JBS)", plat:"9", dia:"DOM" },
+  { hora:"18:10", trajeto:"Domingo — Lins / Guaiçara (retorno da JBS)", plat:"9", dia:"DOM" }
 ];
 
 /* =========================================================
@@ -1216,6 +1262,31 @@ function calcularDistancia(
 
 
 /* =========================================================
+   DIA DA SEMANA DO HORÁRIO
+   Entradas com dia:"DOM" só valem no domingo; as demais
+   (sem o campo "dia") valem de segunda a sábado.
+========================================================= */
+
+function ehHoje(dia) {
+
+  var domingoHoje =
+    new Date().getDay() === 0;
+
+  return domingoHoje
+    ? dia === 'DOM'
+    : dia !== 'DOM';
+
+}
+
+
+function ehHorarioDoDiaCorreto(h) {
+
+  return ehHoje(h.dia);
+
+}
+
+
+/* =========================================================
    PRÓXIMO HORÁRIO
 ========================================================= */
 
@@ -1254,7 +1325,8 @@ function obterProximoHorario() {
 
         return (
           h.cidade === cidade &&
-          h.sentido === sentidoAtual
+          h.sentido === sentidoAtual &&
+          ehHorarioDoDiaCorreto(h)
         );
 
       }
@@ -3099,7 +3171,9 @@ function renderizarHorarios() {
 
 
   div.innerHTML =
-    '';
+    ehHoje('DOM')
+      ? '<div style="font-size:0.78rem;color:#b45309;background:#fef3c7;padding:6px 8px;border-radius:6px;margin-bottom:8px;">☀️ Hoje é domingo — horário reduzido.</div>'
+      : '';
 
 
   var agora =
@@ -3137,7 +3211,9 @@ function renderizarHorarios() {
               cidade &&
 
             h.sentido ===
-              sentidoAtual
+              sentidoAtual &&
+
+            ehHorarioDoDiaCorreto(h)
 
           );
 
@@ -3148,7 +3224,9 @@ function renderizarHorarios() {
   } else {
 
     listaHorarios =
-      DATA_MUNICIPAL_HORARIOS;
+      DATA_MUNICIPAL_HORARIOS.filter(
+        ehHorarioDoDiaCorreto
+      );
 
   }
 
